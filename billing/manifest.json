@@ -1,0 +1,100 @@
+{
+  "schema": "likec4/federation/v1",
+  "name": "billing",
+  "specification": {
+    "tags": {},
+    "elements": {
+      "service": {
+        "style": {}
+      },
+      "component": {
+        "style": {}
+      },
+      "database": {
+        "style": {}
+      },
+      "gateway": {
+        "style": {}
+      }
+    },
+    "relationships": {},
+    "deployments": {},
+    "customColors": {}
+  },
+  "elements": {
+    "billing": {
+      "style": {},
+      "description": {
+        "txt": "Invoicing, subscriptions, and payment processing"
+      },
+      "title": "Billing & Payments",
+      "kind": "service",
+      "id": "billing"
+    },
+    "billing.api": {
+      "style": {},
+      "technology": "REST",
+      "title": "Billing API",
+      "kind": "component",
+      "id": "billing.api"
+    },
+    "billing.invoices": {
+      "style": {},
+      "title": "Invoice Engine",
+      "kind": "component",
+      "id": "billing.invoices"
+    },
+    "billing.stripe": {
+      "style": {},
+      "description": {
+        "txt": "Payment processing"
+      },
+      "title": "Stripe",
+      "kind": "gateway",
+      "id": "billing.stripe"
+    },
+    "billing.ledger": {
+      "style": {},
+      "technology": "PostgreSQL",
+      "title": "Ledger",
+      "kind": "database",
+      "id": "billing.ledger"
+    }
+  },
+  "relations": {
+    "1ih2dt8": {
+      "title": "generates invoices",
+      "source": {
+        "model": "billing.api"
+      },
+      "target": {
+        "model": "billing.invoices"
+      },
+      "id": "1ih2dt8"
+    },
+    "8c00zs": {
+      "title": "records transactions",
+      "source": {
+        "model": "billing.invoices"
+      },
+      "target": {
+        "model": "billing.ledger"
+      },
+      "id": "8c00zs"
+    },
+    "bhl61n": {
+      "title": "processes payments",
+      "source": {
+        "model": "billing.invoices"
+      },
+      "target": {
+        "model": "billing.stripe"
+      },
+      "id": "bhl61n"
+    }
+  },
+  "project": {
+    "id": "billing",
+    "name": "billing"
+  }
+}

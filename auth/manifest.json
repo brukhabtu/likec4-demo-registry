@@ -1,0 +1,89 @@
+{
+  "schema": "likec4/federation/v1",
+  "name": "auth",
+  "specification": {
+    "tags": {},
+    "elements": {
+      "service": {
+        "style": {}
+      },
+      "component": {
+        "style": {}
+      },
+      "database": {
+        "style": {}
+      }
+    },
+    "relationships": {},
+    "deployments": {},
+    "customColors": {}
+  },
+  "elements": {
+    "auth": {
+      "style": {},
+      "description": {
+        "txt": "Centralized authentication and authorization"
+      },
+      "title": "Identity & Access",
+      "kind": "service",
+      "id": "auth"
+    },
+    "auth.api": {
+      "style": {},
+      "technology": "REST",
+      "title": "Auth API",
+      "kind": "component",
+      "id": "auth.api"
+    },
+    "auth.tokens": {
+      "style": {},
+      "technology": "JWT",
+      "title": "Token Service",
+      "kind": "component",
+      "id": "auth.tokens"
+    },
+    "auth.users": {
+      "style": {},
+      "technology": "PostgreSQL",
+      "title": "User Store",
+      "kind": "database",
+      "id": "auth.users"
+    }
+  },
+  "relations": {
+    "fat5dx": {
+      "title": "validates tokens",
+      "source": {
+        "model": "auth.api"
+      },
+      "target": {
+        "model": "auth.tokens"
+      },
+      "id": "fat5dx"
+    },
+    "8x8kp8": {
+      "title": "queries users",
+      "source": {
+        "model": "auth.api"
+      },
+      "target": {
+        "model": "auth.users"
+      },
+      "id": "8x8kp8"
+    },
+    "1in9ry5": {
+      "title": "reads user roles",
+      "source": {
+        "model": "auth.tokens"
+      },
+      "target": {
+        "model": "auth.users"
+      },
+      "id": "1in9ry5"
+    }
+  },
+  "project": {
+    "id": "auth",
+    "name": "auth"
+  }
+}

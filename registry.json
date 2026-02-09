@@ -1,0 +1,40 @@
+{
+  "schema": "likec4/registry/v1",
+  "providers": {
+    "auth": {
+      "lastPublished": "2026-02-09T22:04:49.248Z"
+    },
+    "billing": {
+      "lastPublished": "2026-02-09T22:05:02.680Z"
+    }
+  },
+  "consumers": {
+    "dashboard": {
+      "imports": {
+        "auth": [
+          "auth",
+          "auth.api",
+          "auth.tokens",
+          "auth.users"
+        ],
+        "billing": [
+          "billing",
+          "billing.api",
+          "billing.invoices",
+          "billing.stripe",
+          "billing.ledger"
+        ]
+      }
+    },
+    "billing": {
+      "imports": {
+        "auth": [
+          "auth",
+          "auth.api",
+          "auth.tokens",
+          "auth.users"
+        ]
+      }
+    }
+  }
+}
