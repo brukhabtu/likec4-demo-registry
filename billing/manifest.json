@@ -1,13 +1,86 @@
 {
-  "schema": "likec4/federation/v1",
-  "name": "billing",
-  "version": "1.0.0",
-  "specification": {
-    "tags": {},
-    "elements": {
-      "service": {
-        "style": {}
+  "elements": {
+    "billing": {
+      "description": {
+        "txt": "Invoicing, subscriptions, and payment processing"
       },
+      "id": "billing",
+      "kind": "service",
+      "style": {},
+      "title": "Billing & Payments"
+    },
+    "billing.api": {
+      "id": "billing.api",
+      "kind": "component",
+      "style": {},
+      "technology": "REST",
+      "title": "Billing API"
+    },
+    "billing.invoices": {
+      "id": "billing.invoices",
+      "kind": "component",
+      "style": {},
+      "title": "Invoice Engine"
+    },
+    "billing.ledger": {
+      "id": "billing.ledger",
+      "kind": "database",
+      "style": {},
+      "technology": "PostgreSQL",
+      "title": "Ledger"
+    },
+    "billing.stripe": {
+      "description": {
+        "txt": "Payment processing"
+      },
+      "id": "billing.stripe",
+      "kind": "gateway",
+      "style": {},
+      "title": "Stripe"
+    }
+  },
+  "name": "billing",
+  "project": {
+    "id": "billing",
+    "name": "billing"
+  },
+  "relations": {
+    "1ih2dt8": {
+      "id": "1ih2dt8",
+      "source": {
+        "model": "billing.api"
+      },
+      "target": {
+        "model": "billing.invoices"
+      },
+      "title": "generates invoices"
+    },
+    "8c00zs": {
+      "id": "8c00zs",
+      "source": {
+        "model": "billing.invoices"
+      },
+      "target": {
+        "model": "billing.ledger"
+      },
+      "title": "records transactions"
+    },
+    "bhl61n": {
+      "id": "bhl61n",
+      "source": {
+        "model": "billing.invoices"
+      },
+      "target": {
+        "model": "billing.stripe"
+      },
+      "title": "processes payments"
+    }
+  },
+  "schema": "likec4/federation/v1",
+  "specification": {
+    "customColors": {},
+    "deployments": {},
+    "elements": {
       "component": {
         "style": {}
       },
@@ -16,86 +89,12 @@
       },
       "gateway": {
         "style": {}
+      },
+      "service": {
+        "style": {}
       }
     },
     "relationships": {},
-    "deployments": {},
-    "customColors": {}
-  },
-  "elements": {
-    "billing": {
-      "style": {},
-      "description": {
-        "txt": "Invoicing, subscriptions, and payment processing"
-      },
-      "title": "Billing & Payments",
-      "kind": "service",
-      "id": "billing"
-    },
-    "billing.api": {
-      "style": {},
-      "technology": "REST",
-      "title": "Billing API",
-      "kind": "component",
-      "id": "billing.api"
-    },
-    "billing.invoices": {
-      "style": {},
-      "title": "Invoice Engine",
-      "kind": "component",
-      "id": "billing.invoices"
-    },
-    "billing.stripe": {
-      "style": {},
-      "description": {
-        "txt": "Payment processing"
-      },
-      "title": "Stripe",
-      "kind": "gateway",
-      "id": "billing.stripe"
-    },
-    "billing.ledger": {
-      "style": {},
-      "technology": "PostgreSQL",
-      "title": "Ledger",
-      "kind": "database",
-      "id": "billing.ledger"
-    }
-  },
-  "relations": {
-    "1ih2dt8": {
-      "title": "generates invoices",
-      "source": {
-        "model": "billing.api"
-      },
-      "target": {
-        "model": "billing.invoices"
-      },
-      "id": "1ih2dt8"
-    },
-    "8c00zs": {
-      "title": "records transactions",
-      "source": {
-        "model": "billing.invoices"
-      },
-      "target": {
-        "model": "billing.ledger"
-      },
-      "id": "8c00zs"
-    },
-    "bhl61n": {
-      "title": "processes payments",
-      "source": {
-        "model": "billing.invoices"
-      },
-      "target": {
-        "model": "billing.stripe"
-      },
-      "id": "bhl61n"
-    }
-  },
-  "project": {
-    "id": "billing",
-    "name": "billing"
+    "tags": {}
   }
 }
