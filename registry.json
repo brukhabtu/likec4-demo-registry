@@ -4,12 +4,16 @@
     "auth": {
       "lastPublished": "2026-02-09T22:04:49.248Z",
       "latestVersion": "1.0.0",
-      "versions": ["1.0.0"]
+      "versions": [
+        "1.0.0"
+      ]
     },
     "billing": {
-      "lastPublished": "2026-02-09T22:05:02.680Z",
+      "lastPublished": "2026-02-10T00:28:51.339Z",
       "latestVersion": "1.0.0",
-      "versions": ["1.0.0"]
+      "versions": [
+        "1.0.0"
+      ]
     }
   },
   "consumers": {
