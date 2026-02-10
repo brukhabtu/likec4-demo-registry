@@ -1,0 +1,161 @@
+name: Receive Manifest Update
+
+on:
+  repository_dispatch:
+    types: [manifest-update]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract payload
+        id: payload
+        run: |
+          echo "provider=${{ github.event.client_payload.provider }}" >> "$GITHUB_OUTPUT"
+          echo "version=${{ github.event.client_payload.version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Write manifest files
+        uses: actions/github-script@v7
+        env:
+          PROVIDER: ${{ steps.payload.outputs.provider }}
+          VERSION: ${{ steps.payload.outputs.version }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const provider = process.env.PROVIDER;
+            const version = process.env.VERSION;
+            const manifest = context.payload.client_payload.manifest;
+            const manifestJson = JSON.stringify(manifest, null, 2) + '\n';
+
+            // Create provider directory if needed
+            const providerDir = path.join(process.cwd(), provider);
+            if (!fs.existsSync(providerDir)) {
+              fs.mkdirSync(providerDir, { recursive: true });
+            }
+
+            // Write versioned manifest
+            fs.writeFileSync(
+              path.join(providerDir, `${version}.json`),
+              manifestJson
+            );
+
+            // Write latest manifest pointer
+            fs.writeFileSync(
+              path.join(providerDir, 'manifest.json'),
+              manifestJson
+            );
+
+            console.log(`Wrote ${provider}/${version}.json and ${provider}/manifest.json`);
+
+      - name: Update registry.json
+        uses: actions/github-script@v7
+        env:
+          PROVIDER: ${{ steps.payload.outputs.provider }}
+          VERSION: ${{ steps.payload.outputs.version }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const provider = process.env.PROVIDER;
+            const version = process.env.VERSION;
+            const registryPath = 'registry.json';
+
+            const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+
+            if (!registry.providers) {
+              registry.providers = {};
+            }
+            if (!registry.providers[provider]) {
+              registry.providers[provider] = {};
+            }
+
+            const entry = registry.providers[provider];
+            entry.lastPublished = new Date().toISOString();
+            entry.latestVersion = version;
+
+            if (!entry.versions) {
+              entry.versions = [];
+            }
+            if (!entry.versions.includes(version)) {
+              entry.versions.push(version);
+            }
+
+            fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n');
+            console.log(`Updated registry.json for ${provider}@${version}`);
+
+      - name: Composition check
+        id: composition
+        uses: actions/github-script@v7
+        env:
+          PROVIDER: ${{ steps.payload.outputs.provider }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const provider = process.env.PROVIDER;
+            const registry = JSON.parse(fs.readFileSync('registry.json', 'utf8'));
+            const manifest = JSON.parse(
+              fs.readFileSync(path.join(provider, 'manifest.json'), 'utf8')
+            );
+
+            // Collect all exported FQNs from this provider's manifest
+            const exportedFqns = new Set(Object.keys(manifest.elements || {}));
+
+            const issues = [];
+
+            // Check each consumer that imports from this provider
+            for (const [consumer, config] of Object.entries(registry.consumers || {})) {
+              const imports = (config.imports || {})[provider];
+              if (!imports) continue;
+
+              for (const fqn of imports) {
+                if (!exportedFqns.has(fqn)) {
+                  issues.push({
+                    consumer,
+                    fqn,
+                    message: `Consumer "${consumer}" imports "${fqn}" from "${provider}", but it no longer exists`
+                  });
+                }
+              }
+            }
+
+            let body;
+            if (issues.length === 0) {
+              body = '### Composition Check: Passed\n\nAll consumer imports are satisfied by this manifest.';
+              console.log('Composition check passed');
+            } else {
+              const warnings = issues
+                .map(i => `- **${i.consumer}**: \`${i.fqn}\` - ${i.message}`)
+                .join('\n');
+              body = `### Composition Check: Breaking Changes Detected\n\n${warnings}`;
+              console.log(`Composition check found ${issues.length} issue(s)`);
+              for (const issue of issues) {
+                console.log(`  - ${issue.message}`);
+              }
+            }
+
+            core.setOutput('body', body);
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: federation/${{ steps.payload.outputs.provider }}/${{ steps.payload.outputs.version }}
+          commit-message: "federation: update ${{ steps.payload.outputs.provider }} to ${{ steps.payload.outputs.version }}"
+          title: "federation: update ${{ steps.payload.outputs.provider }} to ${{ steps.payload.outputs.version }}"
+          body: |
+            Automated manifest update from provider repo.
+
+            **Provider:** `${{ steps.payload.outputs.provider }}`
+            **Version:** `${{ steps.payload.outputs.version }}`
+
+            ${{ steps.composition.outputs.body }}
